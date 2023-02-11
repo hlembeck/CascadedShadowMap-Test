@@ -5,7 +5,6 @@
 #include "Player.h"
 
 class Game :
-	private DescriptorHeaps,
 	public DXWindowBase,
 	private Scene,
 	private Player,
@@ -23,7 +22,7 @@ class Game :
 	//Methods for cmdlist
 	void CreateCommandList();
 	void Wait();
-	void ResetCommandList();
+	void ResetCommandList(ID3D12PipelineState* pso);
 
 	BOOL m_inputCaptured;
 	POINT m_cursorPos;

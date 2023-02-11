@@ -70,16 +70,16 @@
     <Filter Include="Header Files\Player">
       <UniqueIdentifier>{275a124c-e069-402e-975a-2081fe599dd8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Render\RenderBase\Scene">
+    <Filter Include="Header Files\Scene">
       <UniqueIdentifier>{f9e0adb2-df6a-4400-8c54-2f796b1ec4ab}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Render\RenderBase\Scene\Dynamic">
+    <Filter Include="Header Files\Scene\Dynamic">
       <UniqueIdentifier>{b6595099-93fd-479f-b727-b991bd589490}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Render\RenderBase\Scene\Static">
+    <Filter Include="Header Files\Scene\Static">
       <UniqueIdentifier>{11db89c8-1a00-4ecd-8416-361a7607d234}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Render\RenderBase\Scene\Static\Terrain">
+    <Filter Include="Header Files\Scene\Static\Terrain">
       <UniqueIdentifier>{26e9da57-4c42-496c-ad9b-75509e565afa}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -112,7 +112,7 @@
       <Filter>Header Files\Render\RenderBase</Filter>
     </ClInclude>
     <ClInclude Include="StaticShapes.h">
-      <Filter>Header Files\Render\RenderBase\Scene\Static</Filter>
+      <Filter>Header Files\Scene\Static</Filter>
     </ClInclude>
     <ClInclude Include="Camera.h">
       <Filter>Header Files\Player</Filter>
@@ -121,10 +121,16 @@
       <Filter>Header Files\Player</Filter>
     </ClInclude>
     <ClInclude Include="Scene.h">
-      <Filter>Header Files\Render\RenderBase\Scene</Filter>
+      <Filter>Header Files\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="CSM.h">
+    <ClInclude Include="BasicShadow.h">
       <Filter>Header Files\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainHeightmap.h">
+      <Filter>Header Files\Scene\Static\Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainClipmapping.h">
+      <Filter>Header Files\Scene\Static\Terrain</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -161,8 +167,11 @@
     <ClCompile Include="Player.cpp">
       <Filter>Source Files\Player</Filter>
     </ClCompile>
-    <ClCompile Include="CSM.cpp">
+    <ClCompile Include="BasicShadow.cpp">
       <Filter>Source Files\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainClipmapping.cpp">
+      <Filter>Source Files\Scene\Static\Terrain</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -178,11 +187,14 @@
     <CustomBuild Include="LocalIllumination.hlsl">
       <Filter>Resource Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="CSM.hlsl">
-      <Filter>Resource Files\Shadow</Filter>
-    </CustomBuild>
     <CustomBuild Include="Constants.hlsl">
       <Filter>Resource Files\Shared</Filter>
     </CustomBuild>
+    <CustomBuild Include="BasicShadow.hlsl">
+      <Filter>Resource Files\Shadow</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Geometries.geom" />
   </ItemGroup>
 </Project>

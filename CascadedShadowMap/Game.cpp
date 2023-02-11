@@ -9,11 +9,12 @@ void Game::OnInit() {
     PipelineObjects::OnInit();
     DescriptorHeaps::OnInit(m_device.Get());
     DXWindowBase::CreateRenderTargets();
+    DXWindowBase::CreateDepthStencil();
     DXWindowBase::CreateFence();
     Camera::LoadConstantBuffer(m_device.Get());
     Player::OnInit(FOVY, m_aspectRatio, 0.1f, 100.0f);
+    BasicShadow::Load(2048);
     CreateCommandList();
-
     Scene::Load();
     m_time = std::chrono::high_resolution_clock::now();
 }
@@ -23,7 +24,7 @@ void Game::OnUpdate() {
     std::chrono::duration<float> diff = curr - m_time;
     float elapsedTime = diff.count();
     m_time = curr;
-    Player::Move(elapsedTime);
+    Player::Move(elapsedTime*2.0f);
     if (m_inputCaptured) {
         POINT cursorPos = {};
         GetCursorPos(&cursorPos);
@@ -35,32 +36,24 @@ void Game::OnUpdate() {
 
 void Game::DrawFinal() {
     {
-        m_commandList->RSSetViewports(1, &m_viewport);
-        m_commandList->RSSetScissorRects(1, &m_scissorRect);
+        //m_commandList->RSSetViewports(1, &(DXWindowBase::m_viewport));
+        //m_commandList->RSSetScissorRects(1, &(DXWindowBase::m_scissorRect));
         CD3DX12_RESOURCE_BARRIER resourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_frameIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
         m_commandList->ResourceBarrier(1, &resourceBarrier);
 
-        //D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
-        m_commandList->OMSetRenderTargets(1, &DXWindowBase::m_rtvHandles[m_frameIndex], FALSE, nullptr);
+        m_commandList->OMSetRenderTargets(1, &DXWindowBase::m_rtvHandles[m_frameIndex], FALSE, &(DXWindowBase::m_dsvHandle));
         const float clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
         m_commandList->ClearRenderTargetView(DXWindowBase::m_rtvHandles[m_frameIndex], clearColor, 0, nullptr);
-        //m_commandList->ClearDepthStencilView(m_dsvHeap->GetCPUDescriptorHandleForHeapStart(), D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+        m_commandList->ClearDepthStencilView(DXWindowBase::m_dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
-        //ID3D12DescriptorHeap* pHeaps[] = {DescriptorHeaps::GetCBVHeap()};
-        //m_commandList->SetDescriptorHeaps(1, pHeaps);
-        //m_commandList->SetGraphicsRootDescriptorTable(0, Camera::GetConstantsHandle());
-        m_commandList->SetGraphicsRootConstantBufferView(1, Camera::GetConstantsAddress());
-        Scene::DrawFinal(m_commandList.Get());
+        //m_commandList->SetGraphicsRootConstantBufferView(0, Camera::GetConstantsAddress()); //Root descriptor, since it is used by all final (those rendered to screen) draw calls
+        m_commandList->SetGraphicsRootDescriptorTable(2, BasicShadow::m_cbvHandle);
+        Scene::Draw(m_commandList.Get());
 
         //Setup for presenting
         resourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_frameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
         m_commandList->ResourceBarrier(1, &resourceBarrier);
-        ThrowIfFailed(m_commandList->Close());
     }
-
-    // Execute the command list.
-    ID3D12CommandList* ppCommandLists[] = { m_commandList.Get() };
-    DXWindowBase::m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 }
 
 void Game::CreateCommandList() {
@@ -69,7 +62,7 @@ void Game::CreateCommandList() {
     ThrowIfFailed(m_commandList->Close());
 
     ThrowIfFailed(m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)));
-    m_fenceValue = 1;
+    m_fenceValue = 0;
 
     // Create an event handle to use for frame synchronization.
     m_fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
@@ -90,17 +83,38 @@ void Game::Wait() {
     }
 }
 
-void Game::ResetCommandList() {
+void Game::ResetCommandList(ID3D12PipelineState* pso) {
     ThrowIfFailed(m_commandAllocator->Reset());
-    ThrowIfFailed(m_commandList->Reset(m_commandAllocator.Get(), PipelineObjects::m_simplePSO.Get()));
+    ThrowIfFailed(m_commandList->Reset(m_commandAllocator.Get(), pso));
 }
 
 void Game::OnRender() {
     Camera::UpdateConstants();
-    ResetCommandList(); //Sets to final PSO. Change in future.
+    BasicShadow::UpdateProjections();
+    //CSMDirectional::UpdateView(LIGHTDIR);
+    //CSMDirectional::UpdateProjections();
+
+    ResetCommandList(PipelineObjects::m_shadowPSO.Get());
     m_commandList->SetGraphicsRootSignature(m_gRootSignature.Get());
-    m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    ID3D12DescriptorHeap* pHeaps[] = { DescriptorHeaps::GetCBVHeap() };
+    m_commandList->SetDescriptorHeaps(1, pHeaps);
+
+    BasicShadow::DrawShadow(m_commandList.Get(), this);
+
+    m_commandList->SetPipelineState(m_simplePSO.Get());
+
+
+   // m_commandList->SetPipelineState(m_simplePSO.Get());
+    m_commandList->RSSetViewports(1, &(DXWindowBase::m_viewport));
+    m_commandList->RSSetScissorRects(1, &(DXWindowBase::m_scissorRect));
+    m_commandList->SetGraphicsRootConstantBufferView(0, Camera::GetConstantsAddress());
+    m_commandList->SetGraphicsRootDescriptorTable(2, BasicShadow::m_cbvHandle);
     DrawFinal();
+    ThrowIfFailed(m_commandList->Close());
+    // Execute the command list.
+    ID3D12CommandList* ppCommandLists[] = { m_commandList.Get() };
+    DXWindowBase::m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+    Wait();
     // Present the frame.
     Present();
     WaitForPreviousFrame();
@@ -145,4 +159,5 @@ void Game::OnResize(const UINT width, const UINT height) {
     m_height = height;
     m_aspectRatio = (float)width / height;
     Camera::SetLens(FOVY, m_aspectRatio, 0.1f, 100.0f);
+    BasicShadow::Resize();
 }

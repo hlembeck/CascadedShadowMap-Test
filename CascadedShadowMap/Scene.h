@@ -1,21 +1,17 @@
 #pragma once
 #include "PipelineObjects.h"
-
-struct ObjectInstances {
-	RenderableObject* pObject;
-	ComPtr<ID3D12Resource> instancesBuffer;
-	UINT nInstances;
-};
+#include "TerrainClipmapping.h"
 
 class Scene :
-	public virtual DXBase,
-	public PipelineObjects
+	public PipelineObjects,
+	public virtual TerrainClipmap
 {
-	std::vector<ObjectInstances> m_pObjectsInstances;
+	std::vector<RenderableObject*> m_objects;
+	Material m_materials[NMATERIALS] = {};
 public:
+	Scene();
 	~Scene();
 	void Load();
 
-	void DrawDepth(ID3D12GraphicsCommandList* commandList);
-	void DrawFinal(ID3D12GraphicsCommandList* commandList);
+	void Draw(ID3D12GraphicsCommandList* commandList);
 };

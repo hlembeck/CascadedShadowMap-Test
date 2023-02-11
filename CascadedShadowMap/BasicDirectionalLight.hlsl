@@ -31,5 +31,5 @@ float4 GetDiffuse(float4 pos, float4 lightDirection, float4 n, float4 viewDirect
 }
  
 float4 GetDirectionalLightFactor(float4 pos, float4 lightDirection, float4 n, float4 viewDirection, float4 viewPosition) {
-	return float4(1.0f, 1.0f, 1.0f, 1.0f) /*GetDiffuse(pos, lightDirection, n, viewDirection, viewPosition) + GetSpecular(pos, lightDirection, n, viewDirection, viewPosition)*/;
+	return clamp(GetDiffuse(pos, lightDirection, n, viewDirection, viewPosition) + GetSpecular(pos, lightDirection, n, viewDirection, viewPosition),0.1f,1.0f);
 }

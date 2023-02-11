@@ -26,7 +26,7 @@ class DescriptorHeaps {
 public:
 	static void OnInit(ID3D12Device* device);
 
-	ID3D12DescriptorHeap* GetCBVHeap() const; //For binding to command list
+	static ID3D12DescriptorHeap* GetCBVHeap(); //For binding to command list
 
 	static HandlePair BatchHandles(D3D12_DESCRIPTOR_HEAP_TYPE type);
 };

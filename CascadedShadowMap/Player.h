@@ -1,9 +1,10 @@
 #pragma once
 #include "Camera.h"
+#include "BasicShadow.h"
 
 class Player :
-	public virtual Camera,
-	public virtual CSMDirectional
+	public Camera,
+	public BasicShadow
 {
 public:
 	Player();

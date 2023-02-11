@@ -66,6 +66,35 @@ void DXWindowBase::CreateRenderTargets() {
     }
 }
 
+void DXWindowBase::CreateDepthStencil() {
+    D3D12_RESOURCE_DESC resourceDesc = {
+        D3D12_RESOURCE_DIMENSION_TEXTURE2D,
+        0,
+        m_width,
+        m_height,
+        1,
+        1,
+        DXGI_FORMAT_D32_FLOAT,
+        {1,0},
+        D3D12_TEXTURE_LAYOUT_UNKNOWN,
+        D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL
+    };
+    CD3DX12_HEAP_PROPERTIES heapProps(D3D12_HEAP_TYPE_DEFAULT);
+
+    D3D12_CLEAR_VALUE optClear;
+    optClear.Format = DXGI_FORMAT_D32_FLOAT;
+    optClear.DepthStencil.Depth = 1.0f;
+    m_device->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &resourceDesc, D3D12_RESOURCE_STATE_DEPTH_WRITE, &optClear, IID_PPV_ARGS(&m_depthBuffer));
+
+    D3D12_DEPTH_STENCIL_VIEW_DESC desc = {
+        DXGI_FORMAT_D32_FLOAT,
+        D3D12_DSV_DIMENSION_TEXTURE2D
+    };
+
+    m_dsvHandle = DescriptorHeaps::BatchHandles(D3D12_DESCRIPTOR_HEAP_TYPE_DSV).cpuHandle;
+    m_device->CreateDepthStencilView(m_depthBuffer.Get(), &desc, m_dsvHandle);
+}
+
 void DXWindowBase::CreateSwapChain() {
     HWND hWnd = Application::GetHWND();
     //Create Device
@@ -111,7 +140,7 @@ void DXWindowBase::CreateSwapChain() {
 
 void DXWindowBase::CreateFence() {
     ThrowIfFailed(m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)));
-    m_fenceValue = 1;
+    m_fenceValue = 0;
 
     // Create an event handle to use for frame synchronization.
     m_fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
@@ -127,14 +156,6 @@ HRESULT DXWindowBase::Present() {
 }
 
 void DXWindowBase::WaitForPreviousFrame() {
-    /*const UINT64 fence = m_fenceValue;
-    ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), fence));
-    m_fenceValue++;
-    if (m_fence->GetCompletedValue() < fence) {
-        ThrowIfFailed(m_fence->SetEventOnCompletion(fence, m_fenceEvent));
-        WaitForSingleObject(m_fenceEvent, INFINITE);
-    }
-    m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();*/
     m_fenceValue++;
     ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), m_fenceValue));
     if (m_fence->GetCompletedValue() < m_fenceValue) {

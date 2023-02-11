@@ -31,30 +31,40 @@ void RootSignatures::LoadGraphicsRS() {
 
     CD3DX12_ROOT_PARAMETER rootParameters[3] = {};
 
-    CD3DX12_DESCRIPTOR_RANGE descriptorRange[1] = {};
-    descriptorRange[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
-    //descriptorRange[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 1);
+    CD3DX12_DESCRIPTOR_RANGE descriptorRange[3] = {};
+    descriptorRange[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 1);
 
-    rootParameters[0].InitAsConstants(61, 0);
-    rootParameters[1].InitAsConstantBufferView(1);
-    rootParameters[2].InitAsDescriptorTable(1, descriptorRange);
+    descriptorRange[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 2);
+    descriptorRange[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
+
+    rootParameters[0].InitAsConstantBufferView(0);
+    rootParameters[1].InitAsDescriptorTable(1, descriptorRange);
+    rootParameters[2].InitAsDescriptorTable(2, descriptorRange + 1);
 
     D3D12_STATIC_SAMPLER_DESC staticSamplers[2] = {};
 
-    CD3DX12_STATIC_SAMPLER_DESC texSampler = CD3DX12_STATIC_SAMPLER_DESC(
-        0,
+    D3D12_STATIC_SAMPLER_DESC texSampler = {
         D3D12_FILTER_MIN_MAG_POINT_MIP_LINEAR,
-        D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-        D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-        D3D12_TEXTURE_ADDRESS_MODE_WRAP
-    );
+        D3D12_TEXTURE_ADDRESS_MODE_BORDER,
+        D3D12_TEXTURE_ADDRESS_MODE_BORDER,
+        D3D12_TEXTURE_ADDRESS_MODE_BORDER,
+        0,
+        1,
+        D3D12_COMPARISON_FUNC_LESS_EQUAL,
+        D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK,
+        0.0f,
+        0.0f,
+        0,
+        0,
+        D3D12_SHADER_VISIBILITY_PIXEL
+    };
     texSampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
     D3D12_STATIC_SAMPLER_DESC depthSampler = {
         D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT,
-        D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-        D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-        D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+        D3D12_TEXTURE_ADDRESS_MODE_BORDER,
+        D3D12_TEXTURE_ADDRESS_MODE_BORDER,
+        D3D12_TEXTURE_ADDRESS_MODE_BORDER,
         0,
         1,
         D3D12_COMPARISON_FUNC_LESS_EQUAL,

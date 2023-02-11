@@ -91,8 +91,9 @@ D3D12_GPU_DESCRIPTOR_HANDLE DescriptorHeaps::GetGPUHandle(D3D12_DESCRIPTOR_HEAP_
 	}
 }
 
-ID3D12DescriptorHeap* DescriptorHeaps::GetCBVHeap() const { return m_cbvHeap.Get(); }
+ID3D12DescriptorHeap* DescriptorHeaps::GetCBVHeap() { return m_cbvHeap.Get(); }
 
 HandlePair DescriptorHeaps::BatchHandles(D3D12_DESCRIPTOR_HEAP_TYPE type) {
+	//printf("%d %d\n", type, m_usedSize[type]);
 	return { GetCPUHandle(type,m_usedSize[type]),GetGPUHandle(type,m_usedSize[type]++) };
 }

@@ -41,6 +41,7 @@ public:
 	virtual void OnInit();
 protected:
 	void CreateRenderTargets();
+	void CreateDepthStencil();
 	void CreateSwapChain();
 	void CreateFence();
 	HRESULT Present();
@@ -50,6 +51,10 @@ protected:
 	UINT m_frameIndex;
 	CD3DX12_RECT m_scissorRect;
 	CD3DX12_VIEWPORT m_viewport;
+
+	ComPtr<ID3D12Resource> m_depthBuffer;
+	D3D12_CPU_DESCRIPTOR_HANDLE m_dsvHandle;
+
 private:
 	ComPtr<IDXGISwapChain3> m_swapChain;
 	//Fence for presenting the frame.

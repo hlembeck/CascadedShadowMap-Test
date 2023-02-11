@@ -1,12 +1,12 @@
 #include "Player.h"
 
-Player::Player() : CSMDirectional(1, {}) {}
+Player::Player() {}
 
 Player::~Player() {}
 
 void Player::OnInit(float fovY, float aspectRatio, float nearZ, float farZ) {
     Camera::OnInit(fovY, aspectRatio, nearZ, farZ);
-    CSMDirectional::Load();
+    //CSMDirectional::Load();
 }
 
 CameraShaderConstants Player::GetCameraConstants() {

@@ -1,6 +1,5 @@
 #pragma once
 #include "Shared.h"
-#include "CSM.h"
 
 /*
 Implementation based on Camera class from Frank Luna's "Introduction to 3D Game Programming with DirectX 12"
@@ -14,7 +13,6 @@ class Camera :
 	XMVECTOR m_up;
 
 	//Matrices used per render
-	XMMATRIX m_viewMatrix;
 	XMMATRIX m_projectionMatrix;
 
 	//Constant buffer for constants.
